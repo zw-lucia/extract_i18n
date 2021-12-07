@@ -38,6 +38,10 @@ module ExtractI18n
           @options[:write_to] = f || "config/locales/unsorted.#{@options[:locale]}"
         end
 
+        opts.on('--skip-prompts', 'Automatically accept all prompts') do |f|
+          @options[:skip_prompts] = f
+        end
+
         opts.on('-h', '--help', 'Prints this help') do
           puts opts
           exit 1

@@ -35,16 +35,13 @@ module ExtractI18n
     private
 
     def read_and_transform(&_block)
-      key = if @options[:namespace]
-              "#{@options[:namespace]}.#{@file_key}"
-            else
-              @file_key
-            end
+      key_path = @options[:namespace] || ''
+
       adapter_class = ExtractI18n::Adapters::Adapter.for(@file_path)
       if adapter_class
         adapter = adapter_class.new(
-          file_key: key,
-          on_ask: ->(change) { ask_one_change?(change) },
+          file_key: key_path,
+          on_ask: ->(change) { ask_one_change?(change, key_path) },
           options: @options,
         )
         output = adapter.run(original_content)
@@ -54,15 +51,34 @@ module ExtractI18n
       end
     end
 
-    def ask_one_change?(change)
+    def ask_one_change?(change, key_path)
+
+      # Skip change altogether if it's only symbols
+      return false if change.i18n_string.match(/^[-!$%^&*()_+|~=`{}\[\]:";'<>?,.\/]*$/)
+
       check_for_unique!(change)
-      puts change.format
-      if PROMPT.no?("replace line ?")
-        false
-      else
+
+      # Skip the prompt if the option was there
+      if @options[:skip_prompts]
         @i18n_changes[change.key] = change.i18n_string
-        true
+        return true
       end
+
+      # Show proposed change
+      puts change.format
+
+      # Prompt for key
+      user_key = PROMPT.ask('Enter i18n key (blank to keep default, x to skip):')
+
+      # Skip this change if x is entered
+      return false if user_key == 'x'
+
+      # Customize key if entered
+      change.key = "#{key_path}.#{user_key}" if user_key
+
+      # add the change to record and finish
+      @i18n_changes[change.key] = change.i18n_string
+      true
     end
 
     def check_for_unique!(change)

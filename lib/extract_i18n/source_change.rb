@@ -9,6 +9,7 @@ module ExtractI18n
     PASTEL = Pastel.new
 
     attr_reader :key, :i18n_string
+    attr_writer :key
 
     # @param i18n_key [String]
     #   "models.foo.bar.button_text"
@@ -41,9 +42,8 @@ module ExtractI18n
     end
 
     def format
-      s = ""
-      s += PASTEL.cyan("replace:  ") + PASTEL.blue(@source_line).
-           gsub(@remove, PASTEL.red(@remove))
+      s = "\n"
+      s += PASTEL.cyan("replace:  ") + PASTEL.red(@remove)
       unless @source_line.include?("\n")
         s += "\n"
       end
@@ -56,7 +56,7 @@ module ExtractI18n
       unless @source_line.include?("\n")
         s += "\n"
       end
-      s += PASTEL.cyan("add i18n: ") + PASTEL.blue("#{@key}: #{@i18n_string}")
+      # s += PASTEL.cyan("add i18n: ") + PASTEL.blue("#{@key}: #{@i18n_string}")
       s
     end
 
